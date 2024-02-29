@@ -5,12 +5,12 @@ if len(sys.argv) != 2:
     print("Just give me a file and I'll do the rest!")
 
 
-chapter_sections = re.compile(r"(\\chapter\{|\\section\{|\\subsection\{|\\subsubsection\{)(.*?)(\})", re.IGNORECASE)
+chapter_sections = re.compile(r"(\\chapter\{|\\section\{|\\subsection\{|\\subsubsection\{|\\paragraph\{)(.*?)(\})", re.IGNORECASE)
 ignored_lines = re.compile(r"^%|^\s*$|\\label\{.*\}|\\clearpage|\\IncMargin\{.*\}|\\DecMargin\{.*\}|^\\minitoc|^\\begin{enumerate}|^\\begin{itemize}|^\\end{enumerate}|^\\end{itemize}", re.IGNORECASE)
-begin_ignore = re.compile(r"^\\begin{figure}|^\\begin{algorithm}|^\\begin{equation}", re.IGNORECASE)
-end_ignore = re.compile(r"^\\end{figure}|^\\end{algorithm}|^\\end{equation}", re.IGNORECASE)
-ref_change = re.compile(r"\\ref{.*?}", re.IGNORECASE)
-just_remove = re.compile(r"\s*\\cite{.*?}", re.IGNORECASE)
+begin_ignore = re.compile(r"^\s*(\\begin{figure\**}|\\begin{algorithm\**}|\\begin{equation\**}|\\begin{table\**}|\\begin{multline\**})", re.IGNORECASE)
+end_ignore = re.compile(r"^\s*(\\end{figure\**}|\\end{algorithm\**}|\\end{equation\**}|\\end{table\**}|\\end{multline\**})", re.IGNORECASE)
+ref_change = re.compile(r"\\ref{.*?}|\\eqref{.*?}", re.IGNORECASE)
+just_remove = re.compile(r"\s*\\cite{.*?}|^\\begin{footnotesize}|^\\end{footnotesize}|^\\td.*{.*}", re.IGNORECASE)
 just_remove_with_info = re.compile(r"(\\emph{|\\textbf{|\\textit{)(.*?)(})", re.IGNORECASE)
 items = re.compile(r"\s*\\item", re.IGNORECASE)
 equations_inline = re.compile(r"(\$|\\\()(.{1,}?)(\$|\\\))", re.IGNORECASE)
@@ -38,8 +38,14 @@ with open(sys.argv[1], 'r') as f:
         line_changed = just_remove_with_info.sub(r"\2", line_changed)
         line_changed = just_remove.sub('', line_changed)
         line_changed = items.sub('-', line_changed)
-        line_changed = equations_inline.sub('variable', line_changed)
+        line_changed = equations_inline.sub('', line_changed)
         line_changed = percentage.sub('%', line_changed)
         content += line_changed + '\n'
+
+content = re.sub(r'(\n\s*)+\n+', '\n\n', content)
+content = re.sub(r'\ {2}', ' ', content)
+content = re.sub(r'\ \.', '.', content)
+content = re.sub(r'\ \,', ',', content)
+content = re.sub(r'\(\)', '', content)
 
 print(content)
